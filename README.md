@@ -1,4 +1,4 @@
-# J.P. Morgan Quantitative Research: Credit Risk & Mortgage Portfolio Valuation
+# J.P. Morgan Quantitative Research: Credit Risk & Portfolio Stress Testing
 
 **Author:** Risalat Masrafi  
 **Institution:** Singapore Polytechnic  
@@ -6,35 +6,58 @@
 
 ---
 
-## Project Overview
-The objective of this project is to develop a comprehensive quantitative risk and valuation engine for J.P. Morgan's lending desks. The project focuses on two core strategic mandates:
-1.  **Personal Loan Risk Engine:** A predictive model to assess the **Probability of Default (PD)** for loan applicants, enabling the calculation of "Expected Loss."
-2.  **Mortgage Portfolio Quantization:** An optimized rating system that discretizes continuous FICO scores into ten risk-homogenous categories.
+## 🎯 Executive Summary
+This project develops a high-fidelity quantitative risk engine designed to evaluate a **$41.6M loan portfolio**. By integrating **Machine Learning (Inference)** with **Stochastic Simulation (Monte Carlo)**, the engine quantifies credit risk across varying economic regimes, providing actionable metrics for capital adequacy and regulatory compliance (Basel III/CCAR frameworks).
 
-## Dataset Description
-The analysis utilizes `Task 3 and 4_Loan_Data.csv`, containing 10,000 loan records with features including:
-* **Credit Lines Outstanding:** Number of open credit lines.
-* **Loan/Debt Outstanding:** Total financial obligations.
-* **Income:** Annual earnings of the borrower.
-* **FICO Score:** A measure of consumer credit risk.
-* **Years Employed:** Employment stability metric.
-* **Default:** Target variable (1 for default, 0 for successful repayment).
+---
 
-## Methodology
+## 🛠️ Technical Workflow
 
-### Task 1 & 2: Default Prediction & Expected Loss
-* **Modeling:** Developed a **Logistic Regression** model to predict the probability of default.
-* **Key Drivers:** Identified that `Credit Lines Outstanding` and `Total Debt` are the most significant indicators of default risk.
-* **Financial Impact:** Used the PD to calculate **Expected Loss** on a per-loan basis (Expected Loss = PD × Loan Amount), assuming a zero recovery rate for simplicity.
+### 1. Probability of Default (PD) Modeling
+* **Algorithm:** Implemented a **Logistic Regression** classifier to estimate individual default probabilities.
+* **Feature Engineering:** Utilized `StandardScaler` to normalize high-variance features like `Income` and `Total Debt`.
+* **Risk Drivers:** Identified **Credit Lines Outstanding** and **Total Debt-to-Income** as the primary deterministic drivers of borrower insolvency.
+* **Separation:** Achieved high model discrimination, resulting in a bimodal PD distribution that clearly separates "Prime" from "Subprime" assets.
 
-### Task 3 & 4: FICO Score Optimization
-* **The Challenge:** Categorizing continuous FICO scores into "buckets" that maximize the difference in default rates between groups while minimizing the variance within them.
-* **Optimization Logic:** Implemented a **Log-Likelihood Maximization** approach to find the mathematically optimal "cut-off" points for a 10-tier rating system.
-* **Quantization:** Converted the complex FICO spectrum into a simplified 1-10 rating scale used for internal bank reporting.
+### 2. Mortgage Portfolio Quantization (FICO Optimization)
+* **Objective:** Discretized continuous FICO scores into a 10-tier risk-homogenous rating system.
+* **Optimization:** Applied **Log-Likelihood Maximization** to determine optimal "cut-off" points, ensuring maximum statistical variance between rating buckets while maintaining intra-bucket homogeneity.
 
-## Getting Started
+### 3. Stochastic Monte Carlo Simulation
+To account for **Systemic Risk**, I engineered a simulation engine that tests the portfolio across 10,000 "Possible Futures":
+* **Regime Switching:** Modeled three economic states: **Normal (90%)**, **Recession (1.5x Stress)**, and **Systemic Crisis (3.0x Stress)**.
+* **Vectorized Computation:** Utilized NumPy matrix-vector multiplication for high-performance loss aggregation across 10,000 universes.
 
-### Prerequisites
-Install the necessary Python stack:
-```bash
-pip install pandas numpy matplotlib seaborn scikit-learn
+---
+
+## 📊 Key Risk Metrics & Results
+The simulation of the **$41.60M** portfolio yielded the following critical financial insights:
+
+| Metric | Value | Financial Significance |
+| :--- | :--- | :--- |
+| **Portfolio Exposure (EAD)** | $41,596,770 | Total Capital at Risk |
+| **Average Expected Loss (EL)** | $8,275,787 | Annual "Cost of Doing Business" |
+| **99% Value at Risk (VaR)** | **$8,915,241** | **Regulatory Capital Requirement** |
+| **Unexpected Loss (UL)** | $639,454 | Required Capital Buffer (Equity) |
+
+### **Regime-Specific Stress Test (99% VaR)**
+* **Normal Economy:** $8.33M
+* **Recession Scenario:** $8.62M
+* **Systemic Crisis:** $8.98M
+
+> **Strategic Insight:** The "Three-Peak" loss distribution proves that credit risk is non-linear; the jump from a Normal to a Crisis regime requires a **~$650k liquidity buffer** to ensure bank solvency.
+
+---
+
+## 🚀 Technical Stack
+* **Language:** Python 3.x
+* **Data Science:** Pandas, NumPy, Scikit-Learn
+* **Visualization:** Matplotlib, Seaborn (Multimodal Distribution Plotting)
+* **Concepts:** Stochastic Modeling, Value at Risk (VaR), Log-Likelihood Optimization, Logistic Inference.
+
+---
+
+## 📈 Future Enhancements
+* **Transition Matrices:** Implement Markov Chain models to track credit migration between FICO buckets.
+* **Recovery Rate (LGD):** Move beyond 100% loss assumptions by modeling collateral hair-cuts.
+* **Macro-Correlation:** Integrate live FRED API data to dynamically update economic state probabilities.
